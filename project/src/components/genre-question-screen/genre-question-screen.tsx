@@ -1,15 +1,17 @@
 import Logo from '../logo/logo';
 import { QuestionGenre, UserGenreQuestionAnswer} from '../../types/question';
-import {useState, ChangeEvent, FormEvent} from 'react';
+import {useState, ChangeEvent, FormEvent, PropsWithChildren} from 'react';
 
-type GenreQuestionScreenProps = {
+type GenreQuestionScreenProps = PropsWithChildren<{
   question: QuestionGenre;
   onAnswer: (question: QuestionGenre, answers: UserGenreQuestionAnswer) => void;
-};
+  renderPlayer: (src: string, playerIndex: number) => JSX.Element;
+}>;
 
 function GenreQuestionScreen(props: GenreQuestionScreenProps): JSX.Element {
-  const {question, onAnswer} = props;
+  const {question, onAnswer, renderPlayer, children} = props;
   const {answers, genre} = question;
+
   const [userAnswers, setUserAnswers] = useState([false, false, false, false]);
 
   return (
@@ -22,11 +24,7 @@ function GenreQuestionScreen(props: GenreQuestionScreenProps): JSX.Element {
           />
         </svg>
 
-        <div className="game__mistakes">
-          <div className="wrong"/>
-          <div className="wrong"/>
-          <div className="wrong"/>
-        </div>
+        {children}
       </header>
 
       <section className="game__screen">
@@ -43,12 +41,7 @@ function GenreQuestionScreen(props: GenreQuestionScreenProps): JSX.Element {
             const keyValue = `${id}-${answer.src}`;
             return (
               <div key={keyValue} className="track">
-                <button className="track__button track__button--play" type="button"/>
-                <div className="track__status">
-                  <audio
-                    src={answer.src}
-                  />
-                </div>
+                {renderPlayer(answer.src, id)}
                 <div className="game__answer">
                   <input className="game__input visually-hidden" type="checkbox" name="answer" value={`answer-${id}`}
                     id={`answer-${id}`}

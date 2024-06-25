@@ -1,17 +1,39 @@
-import {useState} from 'react';
 import { Navigate } from 'react-router-dom';
-import {AppRoute, GameType, FIRST_GAME_STEP} from '../../const';
+import {AppRoute, GameType} from '../../const';
 import ArtistQuestionScreen from '../artist-question-screen/artist-question-screen';
 import GenreQuestionScreen from '../genre-question-screen/genre-question-screen';
-import {QuestionArtist, QuestionGenre, Questions} from '../../types/question';
+import {Question, UserAnswer} from '../../types/question';
+import withAudioPlayer from '../../hooks/with-audio-player/with-audio-player';
+import {checkUserAnswer} from '../../store/action';
+import {connect, ConnectedProps} from 'react-redux';
+import {Dispatch} from '@reduxjs/toolkit';
+import {Actions} from '../../types/action';
+import {State} from '../../types/state';
+import Mistakes from '../mistakes/mistakes';
 
-type GameScreenProps = {
-  questions: Questions;
-};
+const ArtistQuestionScreenWrapped = withAudioPlayer(ArtistQuestionScreen);
+const GenreQuestionScreenWrapped = withAudioPlayer(GenreQuestionScreen);
 
-function GameScreen({questions}: GameScreenProps): JSX.Element {
-  const [step, setStep] = useState(FIRST_GAME_STEP);
 
+const mapStateToProps = ({step, mistakes, questions}: State) => ({
+  step,
+  mistakes,
+  questions,
+});
+
+const mapDispatchToProps = (dispatch: Dispatch<Actions>) => ({
+  onUserAnswer: (question: Question, userAnswer: UserAnswer):void => {
+    dispatch(checkUserAnswer(question, userAnswer));
+  },
+});
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+
+function GameScreen(props: PropsFromRedux): JSX.Element {
+  const {questions, step, onUserAnswer, mistakes} = props;
   const question = questions[step];
 
   if (step >= questions.length || !question) {
@@ -23,23 +45,28 @@ function GameScreen({questions}: GameScreenProps): JSX.Element {
   switch (question.type) {
     case GameType.Artist:
       return (
-        <ArtistQuestionScreen
+        <ArtistQuestionScreenWrapped
           key={step}
-          question={question as QuestionArtist}
-          onAnswer={() => setStep((prevStep) => prevStep + 1)}
-        />
+          question={question}
+          onAnswer={onUserAnswer}
+        >
+          <Mistakes count={mistakes} />
+        </ArtistQuestionScreenWrapped>
       );
     case GameType.Genre:
       return (
-        <GenreQuestionScreen
+        <GenreQuestionScreenWrapped
           key={step}
-          question={question as QuestionGenre}
-          onAnswer={() => setStep((prevStep) => prevStep + 1)}
-        />
+          question={question}
+          onAnswer={onUserAnswer}
+        >
+          <Mistakes count={mistakes} />
+        </GenreQuestionScreenWrapped>
       );
     default:
       return <Navigate to={AppRoute.Root} />;
   }
 }
 
-export default GameScreen;
+export {GameScreen};
+export default connector(GameScreen) ;

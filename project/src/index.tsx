@@ -1,11 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './components/app/app';
-import {questions} from './mocks/question';
+import {legacy_createStore as createStore} from '@reduxjs/toolkit';
+import {reducer} from './store/reducer';
+import {Provider} from 'react-redux';
+import {composeWithDevTools} from '@redux-devtools/extension';
 
-const Setting = {
-  ERRORS_COUNT: 3,
-};
+const store = createStore(
+  reducer,
+  composeWithDevTools(),
+);
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement,
@@ -13,9 +18,8 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <App
-      errorsCount = {Setting.ERRORS_COUNT}
-      questions = {questions}
-    />
+    <Provider store={store}>
+      <App/>
+    </Provider>
   </React.StrictMode>,
 );

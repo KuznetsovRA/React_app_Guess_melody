@@ -1,15 +1,17 @@
-import {ChangeEvent} from 'react';
+import {ChangeEvent, PropsWithChildren} from 'react';
 import Logo from '../logo/logo';
 import {QuestionArtist, UserArtistQuestionAnswer} from '../../types/question';
 
-type ArtistQuestionScreenProps = {
+type ArtistQuestionScreenProps = PropsWithChildren<{
   question: QuestionArtist;
   onAnswer: (question: QuestionArtist, answer: UserArtistQuestionAnswer) => void;
-}
+  renderPlayer: (src: string, playerIndex: number) => JSX.Element;
+}>;
 
 function ArtistQuestionScreen(props: ArtistQuestionScreenProps): JSX.Element {
-  const {question, onAnswer} = props;
+  const {question, onAnswer, renderPlayer, children} = props;
   const {answers, song} = question;
+
   return(
     <section className="game game--artist">
       <header className="game__header">
@@ -20,23 +22,14 @@ function ArtistQuestionScreen(props: ArtistQuestionScreenProps): JSX.Element {
           />
         </svg>
 
-        <div className="game__mistakes">
-          <div className="wrong"></div>
-          <div className="wrong"></div>
-          <div className="wrong"></div>
-        </div>
+        {children}
       </header>
 
       <section className="game__screen">
         <h2 className="game__title">Кто исполняет эту песню?</h2>
         <div className="game__track">
           <div className="track">
-            <button className="track__button track__button--play" type="button"></button>
-            <div className="track__status">
-              <audio>
-                src={song.src}
-              </audio>
-            </div>
+            {renderPlayer(song.src, 0)}
           </div>
         </div>
 
