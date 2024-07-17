@@ -1,10 +1,10 @@
 import { Navigate } from 'react-router-dom';
-import {AppRoute, GameType} from '../../const';
+import {AppRoute, GameType, MAX_MISTAKE_COUNT} from '../../const';
 import ArtistQuestionScreen from '../artist-question-screen/artist-question-screen';
 import GenreQuestionScreen from '../genre-question-screen/genre-question-screen';
 import {Question, UserAnswer} from '../../types/question';
 import withAudioPlayer from '../../hooks/with-audio-player/with-audio-player';
-import {checkUserAnswer} from '../../store/action';
+import {checkUserAnswer, incrementStep} from '../../store/action';
 import {connect, ConnectedProps} from 'react-redux';
 import {Dispatch} from '@reduxjs/toolkit';
 import {Actions} from '../../types/action';
@@ -23,6 +23,7 @@ const mapStateToProps = ({step, mistakes, questions}: State) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch<Actions>) => ({
   onUserAnswer: (question: Question, userAnswer: UserAnswer):void => {
+    dispatch(incrementStep());
     dispatch(checkUserAnswer(question, userAnswer));
   },
 });
@@ -36,9 +37,15 @@ function GameScreen(props: PropsFromRedux): JSX.Element {
   const {questions, step, onUserAnswer, mistakes} = props;
   const question = questions[step];
 
+  if (mistakes >= MAX_MISTAKE_COUNT) {
+    return (
+      <Navigate to={AppRoute.Lose} />
+    );
+  }
+
   if (step >= questions.length || !question) {
     return (
-      <Navigate to={AppRoute.Root} />
+      <Navigate to={AppRoute.Result} />
     );
   }
 

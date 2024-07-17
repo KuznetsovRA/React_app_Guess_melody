@@ -1,5 +1,5 @@
-import { Routes, Route, BrowserRouter } from 'react-router-dom';
-import {AppRoute, AuthorizationStatus, MAX_MISTAKE_COUNT} from '../../const';
+import {Routes, Route, unstable_HistoryRouter as HistoryRouter} from 'react-router-dom';
+import {AppRoute, MAX_MISTAKE_COUNT} from '../../const';
 
 import AuthScreen from '../auth-screen/auth-screen';
 import GameOverScreen from '../game-over-screen/game-over-screen';
@@ -8,31 +8,59 @@ import WelcomeScreen from '../welcome-screen/welcome-screen';
 import WinScreen from '../win-screen/win-screen';
 import PrivateRoute from '../private-route/private-route';
 import GameScreen from '../game-screen/game-screen';
+import {connect, ConnectedProps} from 'react-redux';
+import {State} from '../../types/state';
+import {isCheckedAuth} from '../../game';
+import LoadingScreen from '../loading-screen/loading-screen';
+import browserHistory from '../../browser-history';
 
 
-function App(): JSX.Element {
+const mapStateToProps = (state: State) => ({
+  authorizationStatus: state.authorizationStatus,
+  isDataLoaded: state.isDataLoaded,
+});
+
+const connector = connect(mapStateToProps);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+
+function App({authorizationStatus, isDataLoaded}: PropsFromRedux): JSX.Element {
+
+  if (isCheckedAuth(authorizationStatus) || !isDataLoaded) {
+    return (
+      <LoadingScreen />
+    );
+  }
+
   return (
-    <BrowserRouter>
+    <HistoryRouter history={browserHistory}>
       <Routes>
         <Route path={AppRoute.Root} element={<WelcomeScreen errorsCount={MAX_MISTAKE_COUNT} />} />
         <Route path={AppRoute.Login} element={<AuthScreen />} />
         <Route path={AppRoute.Result} element={
-          <PrivateRoute
-            authorizationStatus={AuthorizationStatus.NoAuth}
-          >
-            <WinScreen />
+          <PrivateRoute>
+            <WinScreen
+              onReplayButtonClick={() => browserHistory.push(AppRoute.Game)}
+            />
           </PrivateRoute>
         }
         />
-        <Route path={AppRoute.Lose} element={<GameOverScreen />} />
+        <Route path={AppRoute.Lose} element={
+          <GameOverScreen
+            onReplayButtonClick={() => browserHistory.push(AppRoute.Game)}
+          />
+        }
+        />
         <Route path={AppRoute.Game} element={
           <GameScreen />
         }
         />
         <Route path="*" element={<NotFoundScreen />} />
       </Routes>
-    </BrowserRouter>
+    </HistoryRouter>
   );
 }
 
-export default App;
+export {App};
+export default connector(App);

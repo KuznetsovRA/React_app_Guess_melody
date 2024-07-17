@@ -1,4 +1,25 @@
-function GameOverScreen(): JSX.Element {
+import {RouteProps} from 'react-router-dom';
+import {Dispatch} from 'redux';
+import {connect, ConnectedProps} from 'react-redux';
+import {resetGame} from '../../store/action';
+import {Actions} from '../../types/action';
+
+type GameOverScreenProps = RouteProps & {
+  onReplayButtonClick: () => void;
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<Actions>) => ({
+  onResetGame() {
+    dispatch(resetGame());
+  },
+});
+
+const connector = connect(null, mapDispatchToProps);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+type ConnectedComponentProps = PropsFromRedux & GameOverScreenProps;
+
+function GameOverScreen({onReplayButtonClick, onResetGame}: ConnectedComponentProps): JSX.Element {
   return (
     <section className="result">
       <div className="result__logo">
@@ -9,6 +30,10 @@ function GameOverScreen(): JSX.Element {
       <button
         className="replay"
         type="button"
+        onClick={() => {
+          onResetGame();
+          onReplayButtonClick();
+        }}
       >
         Попробовать ещё раз
       </button>
@@ -16,4 +41,5 @@ function GameOverScreen(): JSX.Element {
   );
 }
 
-export default GameOverScreen;
+export {GameOverScreen};
+export default connector(GameOverScreen);
